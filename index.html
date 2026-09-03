@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+    <meta name="theme-color" content="#08090c" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+    <meta name="mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-title" content="DT Pace" />
+    <title>Drive-Thru Pace</title>
+    <link rel="manifest" href="manifest.json" />
+    <link rel="icon" href="favicon.svg" type="image/svg+xml" />
+    <link rel="apple-touch-icon" href="icon.jpg" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Chivo+Mono:wght@700;800&family=Outfit:wght@500;600;700;800&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <div id="app" class="app" data-alert="ok" data-state="idle">
+      <header class="topbar">
+        <div class="lane-switch" role="tablist" aria-label="Lanes">
+          <button id="lane-1-btn" class="lane-tab active" type="button" role="tab" aria-selected="true" data-lane="1">
+            <span class="lane-tab-name">Lane 1</span>
+            <strong id="lane-1-time" class="lane-tab-time">—</strong>
+          </button>
+          <button id="lane-2-btn" class="lane-tab" type="button" role="tab" aria-selected="false" data-lane="2">
+            <span class="lane-tab-name">Lane 2</span>
+            <strong id="lane-2-time" class="lane-tab-time">—</strong>
+          </button>
+        </div>
+        <time id="clock" class="clock">--:--</time>
+        <button id="menu-btn" class="icon-btn" type="button" aria-label="Menu">☰</button>
+      </header>
+
+      <section class="hero" aria-labelledby="window-heading">
+        <p class="timer-label" id="window-heading">Window</p>
+        <p id="dep-time" class="hero-digits">0:00</p>
+        <p id="car-chip" class="car-chip empty">Tap when the car is at the window</p>
+        <p id="dep-status" class="hero-status">Ready</p>
+        <div class="meter wrap" aria-hidden="true">
+          <span id="dep-meter" class="meter-fill"></span>
+          <i id="tick-caution" class="tick"></i>
+          <i id="tick-warn" class="tick"></i>
+          <i class="tick end"></i>
+        </div>
+      </section>
+
+      <div class="strip">
+        <div><span>Cars</span><strong id="stat-cars">0</strong></div>
+        <div><span>Avg window</span><strong id="stat-dep">0:00</strong></div>
+        <div><span>Under 30s</span><strong id="stat-ok">—</strong></div>
+      </div>
+
+      <div class="dock">
+        <button id="primary-btn" class="primary-btn" type="button">
+          <span id="primary-label">Car here</span>
+          <small id="primary-hint">Start the 30s clock</small>
+        </button>
+        <div class="dock-row">
+          <button id="undo-btn" class="ghost-btn" type="button" disabled>Undo</button>
+          <button id="wait-btn" class="ghost-btn" type="button">
+            + Waiting <em id="queue-count">0</em>
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <div id="menu-sheet" class="sheet" hidden>
+      <div class="sheet-card" role="dialog" aria-labelledby="menu-title">
+        <h3 id="menu-title">Shift tools</h3>
+        <p id="shift-label" class="sheet-copy">Shift running</p>
+        <div class="menu-grid">
+          <button id="mute-btn" class="ghost-btn" type="button">Sound on</button>
+          <button id="voice-btn" class="ghost-btn" type="button">Voice on</button>
+          <button id="settings-btn" class="ghost-btn" type="button">Settings</button>
+          <button id="export-btn" class="ghost-btn" type="button">Export CSV</button>
+        </div>
+        <button id="reset-btn" class="ghost-btn danger wide" type="button">New shift</button>
+        <section class="mini-stats">
+          <p class="sheet-label">This shift</p>
+          <p id="pace-chip" class="pace-chip ok">Waiting</p>
+          <p class="sheet-copy" id="sos-hint">SOS starts when you tap Car here.</p>
+          <p class="digits-row"><span>SOS</span><strong id="sos-time">0:00</strong></p>
+          <div id="hourly" class="hourly" aria-label="Cars per hour"></div>
+          <div id="history-list" class="history-list"></div>
+        </section>
+        <button id="menu-done" class="primary-btn compact" type="button">Back to lane</button>
+      </div>
+    </div>
+
+    <div id="settings-sheet" class="sheet" hidden>
+      <div class="sheet-card" role="dialog" aria-labelledby="settings-title">
+        <h3 id="settings-title">Lane settings</h3>
+        <label class="field">Window goal (seconds)<input id="set-goal" type="number" min="15" max="90" step="1" inputmode="numeric" /></label>
+        <label class="field">Caution at<input id="set-caution" type="number" min="5" max="80" step="1" inputmode="numeric" /></label>
+        <label class="field">Warning at<input id="set-warn" type="number" min="5" max="80" step="1" inputmode="numeric" /></label>
+        <label class="field">Lane 1 name<input id="set-lane1" type="text" maxlength="16" /></label>
+        <label class="field">Lane 2 name<input id="set-lane2" type="text" maxlength="16" /></label>
+        <label class="check-row"><input id="set-clock12" type="checkbox" />12-hour clock</label>
+        <p class="sheet-copy">Tap <strong>Car here</strong> when they stop at the window. Tap <strong>Pulled off</strong> when they leave. That’s the whole job.</p>
+        <button id="settings-done" class="primary-btn compact" type="button">Save</button>
+      </div>
+    </div>
+
+    <script src="app.js"></script>
+  </body>
+</html>
