@@ -40,7 +40,7 @@
       <section class="hero" aria-labelledby="window-heading">
         <p class="timer-label" id="window-heading">Window</p>
         <p id="dep-time" class="hero-digits">0:00</p>
-        <p id="car-chip" class="car-chip empty">Tap when the car is at the window</p>
+        <p id="car-chip" class="car-chip empty">Tap Pull off when they leave</p>
         <p id="dep-status" class="hero-status">Ready</p>
         <div class="meter wrap" aria-hidden="true">
           <span id="dep-meter" class="meter-fill"></span>
@@ -58,15 +58,10 @@
 
       <div class="dock">
         <button id="primary-btn" class="primary-btn" type="button">
-          <span id="primary-label">Car here</span>
-          <small id="primary-hint">Start the 30s clock</small>
+          <span id="primary-label">Pull off</span>
+          <small id="primary-hint">Car left the window</small>
         </button>
-        <div class="dock-row">
-          <button id="undo-btn" class="ghost-btn" type="button" disabled>Undo</button>
-          <button id="wait-btn" class="ghost-btn" type="button">
-            + Waiting <em id="queue-count">0</em>
-          </button>
-        </div>
+        <button id="undo-btn" class="ghost-btn" type="button" disabled>Undo last car</button>
       </div>
     </div>
 
@@ -84,7 +79,7 @@
         <section class="mini-stats">
           <p class="sheet-label">This shift</p>
           <p id="pace-chip" class="pace-chip ok">Waiting</p>
-          <p class="sheet-copy" id="sos-hint">SOS starts when you tap Car here.</p>
+          <p class="sheet-copy" id="sos-hint">Tap Pull off each time a car leaves.</p>
           <p class="digits-row"><span>SOS</span><strong id="sos-time">0:00</strong></p>
           <div id="hourly" class="hourly" aria-label="Cars per hour"></div>
           <div id="history-list" class="history-list"></div>
@@ -102,7 +97,7 @@
         <label class="field">Lane 1 name<input id="set-lane1" type="text" maxlength="16" /></label>
         <label class="field">Lane 2 name<input id="set-lane2" type="text" maxlength="16" /></label>
         <label class="check-row"><input id="set-clock12" type="checkbox" />12-hour clock</label>
-        <p class="sheet-copy">Tap <strong>Car here</strong> when they stop at the window. Tap <strong>Pulled off</strong> when they leave. That’s the whole job.</p>
+        <p class="sheet-copy">Tap <strong>Pull off</strong> every time a car leaves the window. The next car’s clock starts by itself.</p>
         <button id="settings-done" class="primary-btn compact" type="button">Save</button>
       </div>
     </div>

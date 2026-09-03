@@ -7,7 +7,7 @@
   "orientation": "portrait",
   "background_color": "#08090c",
   "theme_color": "#08090c",
-  "description": "Phone timer for drive-thru shift leaders. Tap Car here, tap Pulled off.",
+  "description": "Phone timer for drive-thru shift leaders. Tap Pull off when the car leaves.",
   "icons": [
     {
       "src": "icon.jpg",

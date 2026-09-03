@@ -1,4 +1,4 @@
-const STORAGE_KEY = "dt-pace-v3";
+const STORAGE_KEY = "dt-pace-v4";
 const HOUR_MS = 60 * 60 * 1000;
 
 const els = {
@@ -13,7 +13,6 @@ const els = {
   depMeter: document.getElementById("dep-meter"),
   tickCaution: document.getElementById("tick-caution"),
   tickWarn: document.getElementById("tick-warn"),
-  queueCount: document.getElementById("queue-count"),
   historyList: document.getElementById("history-list"),
   hourly: document.getElementById("hourly"),
   paceChip: document.getElementById("pace-chip"),
@@ -23,7 +22,6 @@ const els = {
   primaryBtn: document.getElementById("primary-btn"),
   primaryLabel: document.getElementById("primary-label"),
   primaryHint: document.getElementById("primary-hint"),
-  waitBtn: document.getElementById("wait-btn"),
   undoBtn: document.getElementById("undo-btn"),
   muteBtn: document.getElementById("mute-btn"),
   voiceBtn: document.getElementById("voice-btn"),
@@ -277,29 +275,23 @@ function sendToWindow(lane, car) {
   lane.windowCar = car;
 }
 
-function addWaiting() {
-  ensureAudio();
-  haptic(12);
-  activeLane().queue.push(createCar());
-  render(true);
-}
-
-function carHere() {
-  const lane = activeLane();
-  if (lane.windowCar) return;
-  ensureAudio();
-  haptic(18);
+function startCar(lane = activeLane()) {
   const car = lane.queue.length ? lane.queue.shift() : createCar();
   sendToWindow(lane, car);
-  render(true);
 }
 
 function pullOff() {
+  ensureAudio();
+  haptic(24);
   const lane = activeLane();
   const car = lane.windowCar;
-  if (!car) return;
-  haptic(24);
+  if (!car) {
+    startCar(lane);
+    render(true);
+    return;
+  }
   const departedAt = now();
+  if (departedAt - car.windowAt < 600) return;
   state.history.unshift({
     id: car.id,
     number: car.number,
@@ -311,14 +303,9 @@ function pullOff() {
     departedAt,
   });
   state.history = state.history.slice(0, 200);
-  lane.windowCar = null;
   state.lastVoice[state.activeLane] = "";
+  startCar(lane);
   render(true);
-}
-
-function tapPrimary() {
-  if (activeLane().windowCar) pullOff();
-  else carHere();
 }
 
 function undoPullOff() {
@@ -326,11 +313,7 @@ function undoPullOff() {
   if (!last) return;
   haptic(12);
   const lane = state.lanes[last.lane] || activeLane();
-  if (lane.windowCar) {
-    lane.queue.unshift(lane.windowCar);
-    lane.windowCar.windowAt = null;
-    lane.windowCar.fired = new Set();
-  }
+  lane.queue = [];
   lane.windowCar = {
     id: last.id,
     number: last.number,
@@ -342,6 +325,7 @@ function undoPullOff() {
   };
   state.history.shift();
   state.activeLane = last.lane;
+  state.lastVoice[last.lane] = "";
   render(true);
 }
 
@@ -429,7 +413,7 @@ function renderLaneTabs(at) {
       timeEl.textContent = formatDuration(seconds * 1000);
       tab.classList.toggle("hot", alertLevel(seconds) === "late");
     } else {
-      timeEl.textContent = lane.queue.length ? `${lane.queue.length}` : "—";
+      timeEl.textContent = "—";
       tab.classList.remove("hot");
     }
   });
@@ -454,18 +438,16 @@ function renderActive(at = now()) {
     els.depMeter.style.width = `${Math.min(100, (depSec / windowGoal) * 100)}%`;
     els.depMeter.style.background =
       level === "late" ? "var(--late)" : level === "warn" ? "var(--warn)" : level === "caution" ? "var(--caution)" : "var(--ok)";
-    els.sosHint.textContent = "Tap Pulled off when they leave the window.";
+    els.sosHint.textContent = "Tap Pull off each time a car leaves.";
     if (level === "ok") els.depStatus.textContent = "On time";
     if (level === "caution") els.depStatus.textContent = `${cautionAt}s — wrap it up`;
     if (level === "warn") els.depStatus.textContent = `${warnAt}s — they should be leaving`;
     if (level === "late") els.depStatus.textContent = `${windowGoal}s — pull off now`;
   } else {
-    els.carChip.textContent = lane.queue.length
-      ? `${lane.queue.length} waiting — tap Car here`
-      : "Tap when the car is at the window";
+    els.carChip.textContent = "Tap Pull off to start the lane";
     els.carChip.classList.add("empty");
     els.sosTime.textContent = "0:00";
-    els.sosHint.textContent = "SOS starts when you tap Car here.";
+    els.sosHint.textContent = "Tap Pull off each time a car leaves.";
     els.depTime.textContent = "0:00";
     els.depStatus.textContent = "Ready";
     els.app.dataset.alert = "ok";
@@ -535,12 +517,10 @@ function renderStats(at = now()) {
 }
 
 function renderButtons() {
-  const lane = activeLane();
-  const running = Boolean(lane.windowCar);
-  els.primaryLabel.textContent = running ? "Pulled off" : "Car here";
-  els.primaryHint.textContent = running ? "Car left the window" : "Start the 30s clock";
+  const running = Boolean(activeLane().windowCar);
+  els.primaryLabel.textContent = "Pull off";
+  els.primaryHint.textContent = running ? "Car left the window" : "Tap to start, then tap each pull-off";
   els.undoBtn.disabled = state.history.length === 0;
-  els.queueCount.textContent = String(lane.queue.length);
   els.muteBtn.textContent = state.settings.muted ? "Sound off" : "Sound on";
   els.voiceBtn.textContent = state.settings.voice ? "Voice on" : "Voice off";
 }
@@ -583,8 +563,7 @@ function exportCsv() {
   URL.revokeObjectURL(url);
 }
 
-els.primaryBtn.addEventListener("click", tapPrimary);
-els.waitBtn.addEventListener("click", addWaiting);
+els.primaryBtn.addEventListener("click", pullOff);
 els.undoBtn.addEventListener("click", undoPullOff);
 els.resetBtn.addEventListener("click", resetShift);
 els.exportBtn.addEventListener("click", exportCsv);
